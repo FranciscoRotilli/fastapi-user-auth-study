@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List
 
 from ..database import get_db
 from .users_models import User
 from .users_schemas import UserResponse, UserCreate
+from ..auth.auth_router import require_admin_role
 from . import users_service
 
 router = APIRouter(
@@ -40,3 +42,16 @@ def create_new_user(user: UserCreate, db: Session = Depends(get_db)):
     
     new_user = users_service.create_user(db=db, user=user)
     return new_user
+
+@router.get("/", response_model=List[UserResponse])
+def read_all_users(db: Session = Depends(get_db), current_user: UserResponse = Depends(require_admin_role)):
+    """
+    Retrieve all users (admin only).
+    Args:
+        db (Session): SQLAlchemy database session dependency.
+        current_user (UserResponse): The currently authenticated admin user.
+    Returns:
+        List[users_schemas.UserResponse]: List of all users.
+    """
+    users = users_service.get_all_users(db)
+    return users

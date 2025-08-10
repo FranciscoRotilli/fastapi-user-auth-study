@@ -13,3 +13,4 @@ class TokenData(BaseModel):
     JWT token content schema.
     """
     username: Optional[str] = None
+    role: str | None = None

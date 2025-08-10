@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:15
+
+    container_name: auth_api-postgres-db
+
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=auth_api
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - auth_api-pgdata:/var/lib/postgresql/data
+
+# Define o volume nomeado que declaramos acima
+volumes:
+  auth_api-pgdata:

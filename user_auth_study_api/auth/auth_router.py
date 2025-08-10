@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
+from typing import List
 
 from ..database import get_db
 from ..config import settings
@@ -54,13 +55,22 @@ async def get_current_active_user(current_user: users_schemas.UserResponse = Dep
     Returns:
         users_schemas.UserResponse: The current active user.
     """
-    
     if not current_user.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user.")
     return current_user
 
 @router.post("/token", response_model=auth_schemas.Token)
 async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    Login for access token.
+    Args:
+        db (Session): SQLAlchemy database session dependency.
+        form_data (OAuth2PasswordRequestForm): Form data containing username and password.
+    Returns:
+        dict: Access token and token type.
+    Raises:
+        HTTPException: If authentication fails.
+    """
     user = auth_service.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -69,6 +79,19 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = auth_service.create_access_token(data={"sub": user.username})
+    token_data = {"sub": user.username, "role": user.role}
+    
+    access_token = auth_service.create_access_token(data=token_data)
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+def require_admin_role(current_user: users_schemas.UserResponse = Depends(get_current_active_user)):
+    """
+    Dependency to ensure the current user has admin privileges.
+    """
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Admin privileges required."
+        )
+    return current_user

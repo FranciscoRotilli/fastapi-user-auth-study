@@ -11,7 +11,7 @@ sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
 from user_auth_study_api.database import Base
 from user_auth_study_api.config import settings
-from user_auth_study_api.users import users_models
+from user_auth_study_api.users import users_models # Importe todos os seus models aqui
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -46,7 +46,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.DATABASE_URL
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
