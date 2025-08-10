@@ -1,0 +1,1 @@
+## Projeto para estudo de autenticação com FastAPI, OAuth2, JWT, Roles
