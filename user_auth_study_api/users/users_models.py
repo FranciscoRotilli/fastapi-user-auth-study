@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, Integer, String
 from ..database import Base
+from .users_schemas import Role
 
 class User(Base):
     __tablename__ = "users"
@@ -9,7 +10,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
-    role = Column(String, default="user", nullable=False)
+    role = Column(String, default=Role.USER, nullable=False)
 
 class Config:
     orm_mode = True

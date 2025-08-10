@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
-from typing import List
+from typing import Optional
 
 from ..database import get_db
 from ..config import settings
@@ -95,3 +95,27 @@ def require_admin_role(current_user: users_schemas.UserResponse = Depends(get_cu
             detail="Access denied: Admin privileges required."
         )
     return current_user
+
+def try_get_current_user(token: Optional[str] = Depends(oauth2_schema), db: Session = Depends(get_db)):
+    """
+    Optional dependency to attempt to retrieve the current user based on the provided token.
+    Args:
+        token (Optional[str]): The JWT token extracted from the request.
+        db (Session): SQLAlchemy database session dependency.
+    Returns:
+        users_schemas.UserResponse: The current user if found, None otherwise.
+    """
+    if token is None:
+        return None
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            return None
+        user = users_service.get_user_by_username(db, username=username)
+        if user is None:
+            return None
+
+        return user
+    except JWTError:
+        return None
