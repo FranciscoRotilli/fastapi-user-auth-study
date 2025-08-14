@@ -7,7 +7,7 @@ from .users_models import User
 from .users_schemas import UserResponse, UserCreate
 from ..auth import auth_router
 from . import users_service
-from .users_schemas import Role
+from .users_models import UserRole
 
 router = APIRouter(
     prefix="/users",
@@ -36,10 +36,10 @@ def create_new_user(
             detail="Username already in use."
         )
     
-    is_admin_creation = current_user is not None and getattr(current_user, "role", None) == Role.ADMIN
+    is_admin_creation = current_user is not None and getattr(current_user, "role", None) == UserRole.ADMIN
 
     if not is_admin_creation:
-        user_data.role = Role.USER
+        user_data.role = UserRole.USER
 
     new_user = users_service.create_user(db=db, user=user_data)
     return new_user
